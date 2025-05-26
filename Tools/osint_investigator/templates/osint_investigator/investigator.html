@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Investigador OSINT{% endblock %}
+
+{% block content %}
+<h2>Investigación de Personas</h2>
+
+<form method="post" id="investigation-form" class="card p-4 shadow-sm mb-4">
+    {% csrf_token %}
+    <div class="mb-3">
+        {{ form.query.label_tag }} {{ form.query }}
+    </div>
+    <div class="mb-3">
+        {{ form.search_type.label_tag }} {{ form.search_type }}
+    </div>
+    <button type="submit" class="btn btn-primary">Investigar</button>
+</form>
+
+<div id="loading" class="text-center" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p>Investigando...</p>
+</div>
+
+<div id="results-area"></div>
+
+<script>
+document.getElementById('investigation-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('results-area').innerHTML = '';
+
+    fetch("{% url 'investigator' %}", {
+        method: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('results-area').innerHTML = data.html;
+    })
+    .catch(error => {
+        console.error(error);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('results-area').innerHTML = "<p class='text-danger'>Ocurrió un error al realizar la investigación.</p>";
+    });
+});
+</script>
+{% endblock %}

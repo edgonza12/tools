@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Escáner de Red{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Escaneo de Red</h2>
+
+<div class="d-flex justify-content-between mb-4">
+    <a href="{% url 'scan_history' %}" class="btn btn-outline-secondary">Ver historial</a>
+</div>
+
+<form id="scan-form" class="card p-4 shadow-sm mb-4">
+    {% csrf_token %}
+    <div class="mb-3">
+        {{ form.network_range.label_tag }}
+        {{ form.network_range }}
+    </div>
+    <button type="submit" class="btn btn-primary">Escanear</button>
+</form>
+
+<div id="loading" class="text-center my-4" style="display: none;">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p>Escaneando red, por favor espere...</p>
+</div>
+
+<div id="scan-results"></div>
+
+<script>
+document.getElementById('scan-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+    const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('scan-results').innerHTML = '';
+
+    fetch("{% url 'scan_network_ajax' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('scan-results').innerHTML = html;
+    })
+    .catch(error => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('scan-results').innerHTML = '<div class="alert alert-danger">Error al escanear: ' + error + '</div>';
+    });
+});
+</script>
+{% endblock %}

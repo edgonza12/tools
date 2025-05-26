@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Investigación OSINT{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Investigación de Persona</h2>
+
+    <form method="post" id="investigation-form" class="card p-4 shadow-sm">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+        </div>
+        <div class="mb-3">
+            {{ form.username.label_tag }}
+            {{ form.username }}
+        </div>
+        <div class="mb-3">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+        </div>
+        <button type="submit" class="btn btn-primary">Iniciar Investigación</button>
+    </form>
+
+    <div id="loading" class="text-center my-4" style="display: none;">
+        {% include "osint_investigator/partials/loading_spinner.html" %}
+        <p class="mt-2">Realizando investigación, por favor espera...</p>
+    </div>
+
+    <div id="investigation-results" class="mt-4"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('investigation-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('investigation-results').innerHTML = '';
+
+    fetch("{% url 'start_investigation' %}", {
+        method: "POST",
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('investigation-results').innerHTML = html;
+    })
+    .catch(error => {
+        document.getElementById('loading').style.display = 'none';
+        alert("Ocurrió un error al realizar la investigación.");
+        console.error(error);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% for host in results %}
+    <div class="card mb-3 p-3">
+        <h5>{{ host.ip }} ({{ host.status }})</h5>
+        <p><strong>Hostname:</strong> {{ host.hostname|default:"—" }}<br>
+           <strong>MAC:</strong> {{ host.mac|default:"—" }}<br>
+           <strong>Fabricante:</strong> {{ host.vendor|default:"—" }}</p>
+        {% if host.ports %}
+            <h6>Puertos abiertos:</h6>
+            <ul>
+                {% for port in host.ports %}
+                    <li>{{ port.port }}/{{ port.protocol }} — {{ port.service }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No se detectaron puertos abiertos.</p>
+        {% endif %}
+    </div>
+{% endfor %}

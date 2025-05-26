@@ -1,0 +1,17 @@
+{% if results %}
+    <div class="card p-4">
+        <h5>Resultados:</h5>
+        <ul class="list-group">
+            {% for res in results %}
+                <li class="list-group-item">
+                    <strong>{{ res.label }}:</strong> {{ res.value }}
+                    {% if res.url %}
+                        — <a href="{{ res.url }}" target="_blank">Ver</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% else %}
+    <p class="text-muted">No se encontraron resultados.</p>
+{% endif %}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Historial de Escaneos{% endblock %}
+{% block content %}
+<h2 class="mb-4">Historial de Escaneos</h2>
+
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-3">
+        {{ filter_form.start_date.label_tag }}
+        {{ filter_form.start_date }}
+    </div>
+    <div class="col-md-3">
+        {{ filter_form.end_date.label_tag }}
+        {{ filter_form.end_date }}
+    </div>
+    <div class="col-md-4">
+        {{ filter_form.target_network.label_tag }}
+        {{ filter_form.target_network }}
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-outline-primary w-100" type="submit">Filtrar</button>
+    </div>
+    <div class="d-flex justify-content-between mb-4">
+        <a href="{% url 'scan_network' %}" class="btn btn-outline-primary mb-3">Nuevo escaneo</a>
+    </div>
+</form>
+{% if scans %}
+    <ul class="list-group">
+        {% for scan in scans %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                    <strong>Red:</strong> {{ scan.target_network }}<br>
+                    <small class="text-muted">Fecha: {{ scan.date }}</small>
+                </span>
+                <a href="{% url 'scan_detail' scan.pk %}" class="btn btn-sm btn-outline-primary">Ver detalle</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No hay escaneos registrados.</p>
+{% endif %}
+{% endblock %}

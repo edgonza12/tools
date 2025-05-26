@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Helvetica, sans-serif; font-size: 12px; }
+        h2, h3 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ccc; padding: 5px; text-align: left; }
+        th { background-color: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <h2>Reporte de Escaneo</h2>
+    <p><strong>Red escaneada:</strong> {{ scan.target_network }}</p>
+    <p><strong>Fecha:</strong> {{ scan.date }}</p>
+    <p><strong>Total de hosts:</strong> {{ scan.total_hosts }}</p>
+
+    {% for host in scan.hosts.all %}
+        <h3>Host: {{ host.ip }}</h3>
+        <p>
+            <strong>Hostname:</strong> {{ host.hostname|default:"—" }}<br/>
+            <strong>MAC:</strong> {{ host.mac|default:"—" }}<br/>
+            <strong>Vendor:</strong> {{ host.vendor|default:"—" }}
+        </p>
+        {% if host.ports.exists %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Puerto</th>
+                        <th>Protocolo</th>
+                        <th>Servicio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for port in host.ports.all %}
+                        <tr>
+                            <td>{{ port.port }}</td>
+                            <td>{{ port.protocol }}</td>
+                            <td>{{ port.service }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p><em>No se encontraron puertos abiertos.</em></p>
+        {% endif %}
+        <hr/>
+    {% endfor %}
+</body>
+</html>

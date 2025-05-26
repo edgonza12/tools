@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Descargar PDF{% endblock %}
+
+{% block content %}
+    <h2 class="mb-4">Descargar PDF desde URL</h2>
+    <form method="post" class="card p-4 shadow-sm">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.pdf_url.label_tag }}
+            {{ form.pdf_url }}
+            {% if form.pdf_url.errors %}
+                <div class="text-danger">{{ form.pdf_url.errors.0 }}</div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Descargar PDF</button>
+    </form>
+{% endblock %}

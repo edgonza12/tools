@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <h1 class="mt-4">Bienvenido, {{ request.user.first_name }} 👋</h1>
+    <p>Este es tu panel principal.</p>
+    <!-- Aquí puedes mostrar estadísticas, accesos rápidos, etc. -->
+{% endblock %}

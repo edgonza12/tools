@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Detalle del Escaneo{% endblock %}
+{% block content %}
+<h2 class="mb-4">Detalle del escaneo: {{ scan.target_network }}</h2>
+<p><strong>Fecha:</strong> {{ scan.date }}</p>
+<p><strong>Total de hosts detectados:</strong> {{ scan.total_hosts }}</p>
+
+{% for host in scan.hosts.all %}
+    <div class="card mb-3 p-3">
+        <h5>{{ host.ip }}</h5>
+        <p><strong>Hostname:</strong> {{ host.hostname|default:"—" }}<br>
+           <strong>MAC:</strong> {{ host.mac|default:"—" }}<br>
+           <strong>Fabricante:</strong> {{ host.vendor|default:"—" }}</p>
+        {% if host.ports.exists %}
+            <h6>Puertos abiertos:</h6>
+            <ul>
+                {% for port in host.ports.all %}
+                    <li>{{ port.port }}/{{ port.protocol }} — {{ port.service }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No se detectaron puertos abiertos.</p>
+        {% endif %}
+    </div>
+{% endfor %}
+<a href="{% url 'export_scan_csv' scan.pk %}" class="btn btn-success mb-3">Exportar CSV</a>
+<a href="{% url 'export_scan_pdf' scan.pk %}" class="btn btn-danger mb-3">Exportar PDF</a>
+<a href="{% url 'scan_history' %}" class="btn btn-secondary">Volver al historial</a>
+{% endblock %}
