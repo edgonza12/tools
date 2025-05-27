@@ -2,62 +2,43 @@
 {% block title %}Investigación OSINT{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4">Investigación de Persona</h2>
+<h2 class="mb-4">Investigación OSINT</h2>
 
-    <form method="post" id="investigation-form" class="card p-4 shadow-sm">
-        {% csrf_token %}
-        <div class="mb-3">
-            {{ form.name.label_tag }}
-            {{ form.name }}
-        </div>
-        <div class="mb-3">
-            {{ form.username.label_tag }}
-            {{ form.username }}
-        </div>
-        <div class="mb-3">
-            {{ form.email.label_tag }}
-            {{ form.email }}
-        </div>
-        <button type="submit" class="btn btn-primary">Iniciar Investigación</button>
-    </form>
+<form id="investigation-form" method="post" class="card p-4 shadow-sm mb-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Investigar</button>
+</form>
 
-    <div id="loading" class="text-center my-4" style="display: none;">
-        {% include "osint_investigator/partials/loading_spinner.html" %}
-        <p class="mt-2">Realizando investigación, por favor espera...</p>
+<div id="loading" style="display:none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
     </div>
-
-    <div id="investigation-results" class="mt-4"></div>
+    <p>Realizando búsqueda...</p>
 </div>
-{% endblock %}
 
-{% block extra_js %}
+<div id="results-container"></div>
+
 <script>
-document.getElementById('investigation-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const form = e.target;
-    const formData = new FormData(form);
+document.getElementById("investigation-form").addEventListener("submit", function(event) {
+    event.preventDefault();
+    let form = event.target;
+    let formData = new FormData(form);
 
-    document.getElementById('loading').style.display = 'block';
-    document.getElementById('investigation-results').innerHTML = '';
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("results-container").innerHTML = "";
 
-    fetch("{% url 'start_investigation' %}", {
+    fetch("{% url 'sherlock_search' %}", {
         method: "POST",
-        body: formData,
         headers: {
-            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-        }
-    })
-    .then(response => response.text())
-    .then(html => {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('investigation-results').innerHTML = html;
-    })
-    .catch(error => {
-        document.getElementById('loading').style.display = 'none';
-        alert("Ocurrió un error al realizar la investigación.");
-        console.error(error);
-    });
+            "X-CSRFToken": formData.get("csrfmiddlewaretoken")
+        },
+        body: formData
+    }).then(response => response.text())
+      .then(html => {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("results-container").innerHTML = html;
+      });
 });
 </script>
 {% endblock %}

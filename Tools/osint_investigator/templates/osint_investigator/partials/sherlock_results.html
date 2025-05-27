@@ -1,0 +1,50 @@
+{% if results %}
+<div class="alert alert-success">
+    Se encontraron {{ results|length }} coincidencias del nombre de usuario.
+</div>
+
+<div class="list-group">
+    {% for result in results %}
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <i class="fab fa-{{ result.site|lower|replace:' ','-' }} fa-lg me-2 icon-fa" title="{{ result.site }}"></i>
+                <strong>{{ result.site }}</strong>
+            </div>
+            <div>
+                <a href="{{ result.url }}" target="_blank" class="btn btn-sm btn-outline-primary me-2">
+                    <i class="fas fa-external-link-alt"></i> Ver perfil
+                </a>
+                <button class="btn btn-sm btn-outline-secondary copy-btn" data-url="{{ result.url }}">
+                    <i class="fas fa-copy"></i> Copiar
+                </button>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-warning">
+    No se encontraron coincidencias para este nombre de usuario.
+</div>
+{% endif %}
+
+<script>
+// Copiar al portapapeles
+document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const url = this.getAttribute('data-url');
+        navigator.clipboard.writeText(url).then(() => {
+            this.innerHTML = '<i class="fas fa-check text-success"></i> Copiado';
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-copy"></i> Copiar';
+            }, 2000);
+        });
+    });
+});
+
+// Fallback para íconos que no cargan
+document.querySelectorAll('.icon-fa').forEach(icon => {
+    icon.addEventListener('error', function () {
+        this.className = 'fas fa-globe fa-lg me-2';  // Fallback a ícono genérico
+    });
+});
+</script>
