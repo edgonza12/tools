@@ -1,26 +1,40 @@
 import subprocess
-import os
 import tempfile
+import json
+import os
 
-def search_username(username):
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.txt') as temp_file:
-        output_file = temp_file.name
+def run_sherlock(username):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as tmpfile:
+        output_file = tmpfile.name
 
     try:
+        # Ejecutar Sherlock
         result = subprocess.run(
-            ['python3', 'sherlock/sherlock_project/sherlock.py', username, '--print-found', '--timeout', '5', '--output', output_file],
+            ['python3', 'osint_investigator/sherlock/sherlock_project/sherlock.py', username, '--json', output_file],
             capture_output=True,
-            text=True
+            text=True,
+            timeout=90  # tiempo máximo de espera
         )
 
         if result.returncode != 0:
-            raise Exception(f"Sherlock execution failed: {result.stderr}")
+            return {
+                "error": "Error al ejecutar Sherlock",
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "code": result.returncode
+            }
 
         with open(output_file, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
+            data = json.load(f)
 
-        results = [line.strip() for line in lines if username in line]
-        return results
+        found = data.get(username, {}).get("accounts", {})
 
+        return {"results": {site: acc.get("url", "") for site, acc in found.items()}}
+
+    except subprocess.TimeoutExpired:
+        return {"error": "Tiempo de espera agotado al ejecutar Sherlock"}
+    except Exception as e:
+        return {"error": str(e)}
     finally:
-        os.remove(output_file)
+        if os.path.exists(output_file):
+            os.remove(output_file)

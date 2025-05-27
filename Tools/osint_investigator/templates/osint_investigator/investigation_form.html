@@ -6,39 +6,42 @@
 
 <form id="investigation-form" method="post" class="card p-4 shadow-sm mb-4">
     {% csrf_token %}
-    {{ form.as_p }}
+    <div class="mb-3">
+        {{ form.username.label_tag }}
+        {{ form.username }}
+    </div>
     <button type="submit" class="btn btn-primary">Investigar</button>
 </form>
 
-<div id="loading" style="display:none;">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Cargando...</span>
-    </div>
-    <p>Realizando búsqueda...</p>
+<div id="investigation-results">
+    <!-- Aquí se muestran los resultados -->
 </div>
+{% endblock %}
 
-<div id="results-container"></div>
-
+{% block scripts %}
 <script>
-document.getElementById("investigation-form").addEventListener("submit", function(event) {
-    event.preventDefault();
-    let form = event.target;
-    let formData = new FormData(form);
+document.getElementById('investigation-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
 
-    document.getElementById("loading").style.display = "block";
-    document.getElementById("results-container").innerHTML = "";
+    document.getElementById('investigation-results').innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Buscando perfiles en redes sociales...</p></div>';
 
-    fetch("{% url 'sherlock_search' %}", {
-        method: "POST",
+    fetch("{% url 'investigator_view' %}", {
+        method: 'POST',
         headers: {
-            "X-CSRFToken": formData.get("csrfmiddlewaretoken")
+            'X-Requested-With': 'XMLHttpRequest',
         },
-        body: formData
-    }).then(response => response.text())
-      .then(html => {
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("results-container").innerHTML = html;
-      });
+        body: formData,
+    })
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById('investigation-results').innerHTML = html;
+    })
+    .catch(error => {
+        document.getElementById('investigation-results').innerHTML =
+            "<div class='alert alert-danger'>Error en la solicitud AJAX</div>";
+    });
 });
 </script>
 {% endblock %}

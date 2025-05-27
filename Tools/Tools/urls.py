@@ -39,5 +39,6 @@ urlpatterns = [
     path('register/', account_views.register_view, name='register'),
     path('pdf/', include('pdf_tool.urls')),  # <- Agregado aquí
     path('scanner/', include('network_scanner.urls')),
+    #path('investigation/', include('osint_investigator.urls')),
     path('investigation/', include('osint_investigator.urls')),
 ]
