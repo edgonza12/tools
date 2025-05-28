@@ -3,44 +3,69 @@
 
 {% block content %}
 <h2 class="mb-4">Investigación OSINT</h2>
+    <form id="investigation-form" class="card p-4 mb-4 shadow-sm" method="post">
+        {% csrf_token %}
 
-<form id="investigation-form" method="post" class="card p-4 shadow-sm mb-4">
-    {% csrf_token %}
-    <div class="mb-3">
-        {{ form.username.label_tag }}
-        {{ form.username }}
-    </div>
-    <button type="submit" class="btn btn-primary">Investigar</button>
-</form>
+        <div class="mb-3">
+            {{ form.query.label_tag }}
+            {{ form.query }}
+        </div>
 
-<div id="investigation-results">
-    <!-- Aquí se muestran los resultados -->
+        {{ form.search_type }}  <!-- ESTE CAMPO ES OCULTO, NO DEBE FALTAR -->
+
+        <button type="submit" class="btn btn-primary">Investigar</button>
+    </form>
+
+<div id="loader" class="text-center" style="display:none;">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-2">Buscando en plataformas sociales...</p>
 </div>
+
+<div id="results-container" class="mt-4"></div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_js %}
 <script>
-document.getElementById('investigation-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    const form = e.target;
+document.getElementById("investigation-form").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const form = event.target;
     const formData = new FormData(form);
+    const loader = document.getElementById("loader");
+    const resultsContainer = document.getElementById("results-container");
 
-    document.getElementById('investigation-results').innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Buscando perfiles en redes sociales...</p></div>';
+    loader.style.display = "block";
+    resultsContainer.innerHTML = "";
 
-    fetch("{% url 'investigator_view' %}", {
-        method: 'POST',
+    fetch("{% url 'investigation' %}", {
+        method: "POST",
         headers: {
-            'X-Requested-With': 'XMLHttpRequest',
+            "X-Requested-With": "XMLHttpRequest"
         },
-        body: formData,
+        body: formData
     })
-    .then(response => response.text())
-    .then(html => {
-        document.getElementById('investigation-results').innerHTML = html;
+    .then(response => response.json())
+    .then(data => {
+        loader.style.display = "none";
+
+        if (data.success) {
+            if (data.results.length === 0) {
+                resultsContainer.innerHTML = "<p class='text-muted'>No se encontraron resultados.</p>";
+            } else {
+                let html = '<h4>Resultados encontrados:</h4><ul class="list-group">';
+                data.results.forEach(site => {
+                    html += `<li class="list-group-item"><strong>${site.platform}</strong>: <a href="${site.url}" target="_blank">${site.url}</a></li>`;
+                });
+                html += '</ul>';
+                resultsContainer.innerHTML = html;
+            }
+        } else {
+            resultsContainer.innerHTML = `<div class="alert alert-warning">${data.error}</div>`;
+        }
     })
     .catch(error => {
-        document.getElementById('investigation-results').innerHTML =
-            "<div class='alert alert-danger'>Error en la solicitud AJAX</div>";
+        loader.style.display = "none";
+        resultsContainer.innerHTML = `<div class="alert alert-danger">Error al realizar la búsqueda.</div>`;
     });
 });
 </script>

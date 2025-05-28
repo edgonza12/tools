@@ -51,29 +51,44 @@
 #             return JsonResponse({'error': 'Tiempo de espera agotado al ejecutar Sherlock'}, status=504)
 
 #     return JsonResponse({'error': 'Método no permitido'}, status=405)
-
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from .forms import SherlockInvestigationForm
-from .sherlock_wrapper import run_sherlock
+from .forms import InvestigationForm
+from .models import InvestigationHistory
+from .utils import run_sherlock
 
+@login_required
 def investigator_view(request):
-    form = SherlockInvestigationForm()
-
-    if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
-        form = SherlockInvestigationForm(request.POST)
+    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        form = InvestigationForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data['username']
+            username = form.cleaned_data['query']    
+            search_type = form.cleaned_data['search_type']  # si tu formulario lo incluye
+
             results = run_sherlock(username)
 
-            if 'error' in results:
-                return JsonResponse({'html': f"<div class='alert alert-danger'>{results['error']}</div>"})
+            if results.get("error"):
+                return JsonResponse(results, status=400)
 
-            return render(request, "osint_investigator/partials/sherlock_results.html", {
-                'username': username,
-                'results': results['results']
+            # Guardar en base de datos
+            history = InvestigationHistory.objects.create(
+                user=request.user,
+                search_type=search_type,
+                username=username if search_type == 'username' else None,
+                email=username if search_type == 'email' else None,
+                full_name=username if search_type == 'fullname' else None,
+                result_count=len(results.get('results', [])) if isinstance(results, dict) else 0,
+            )
+
+            # Puedes guardar los resultados si deseas, aquí se devuelven directamente
+            return JsonResponse({
+                "success": True,
+                "results": results['results']
             })
 
-        return JsonResponse({'html': "<div class='alert alert-danger'>Formulario inválido</div>"})
+        return JsonResponse({"error": "Formulario inválido"}, status=400)
 
-    return render(request, "osint_investigator/investigation_form.html", {'form': form})
+    else:
+        form = InvestigationForm()
+        return render(request, 'osint_investigator/investigation_form.html', {'form': form})
